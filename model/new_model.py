@@ -19,41 +19,42 @@ class newUNet(nn.Module):
         self.up3 = Up(128, 64)
         self.up4 = Up(64, 32)
         self.outc1 = OutConv(32, n_classes, True)
-
-        self.fulcon = Fulcon(512*32*32, 64)
-        self.upconv1 = Up_Conv(64, 256, 32)
-
-        self.trans_conv1 = Transpose_Conv(256, 256)
-        self.trans_conv2 = Transpose_Conv(256, 128)
-        self.trans_conv3 = Transpose_Conv(128, 64)
-        self.trans_conv4 = Transpose_Conv(64, 32)
         self.outc2 = OutConv(32, 1)
-
-        self.ECAblock = ECABlock(512)
+        # self.fulcon = Fulcon(512*32*32, 64)
+        # self.upconv1 = Up_Conv(64, 256, 32)
+        # self.ECAblock = ECABlock(512)
 
     def forward(self, x):
-        xconv, x1 = self.down1(x)
-        x1conv, x2 = self.down2(x1)
-        x2conv, x3 = self.down3(x2)
-        x3conv, x4 = self.down4(x3)
+        x1conv, x1 = self.down1(x)
+        x2conv, x2 = self.down2(x1)
+        x3conv, x3 = self.down3(x2)
+        x4conv, x4 = self.down4(x3)
         x5 = self.endconv(x4)
         # x_eca = self.ECAblock(x5)
 
         # fulconnect
-        y = self.fulcon(x5)
-        y = y.view(-1, 64, 1, 1)
-        y = self.upconv1(y)
+        # y = self.fulcon(x5)
+        # y = y.view(-1, 64, 1, 1)
+        # y = self.upconv1(y)
 
-        y = self.trans_conv1(y, x3conv)
-        x = self.up1(x5, x3conv)
-        y = self.trans_conv2(y, x2conv)
-        x = self.up2(x, y)
-        y = self.trans_conv3(y, x1conv)
-        x = self.up3(x, y)
-        y = self.trans_conv4(y, xconv)
-        x = self.up4(x, y)
-        logits = self.outc1(x)
-        logits2 = self.outc2(y)
+        y = self.up1(x5, x4conv)
+        y2 = self.up1(x5, x4conv)
+        y = y + y2
+
+        y = self.up2(y, x3conv)
+        y2 = self.up2(y2, x3conv)
+        y = y + y2
+
+        y = self.up3(y, x2conv)
+        y2 = self.up3(y2, x2conv)
+        y = y + y2
+
+        y = self.up4(y, x1conv)
+        y2 = self.up4(y2, x1conv)
+        y = y + y2
+
+        logits = self.outc1(y)
+        logits2 = self.outc2(y2)
 
         return logits, logits2
 

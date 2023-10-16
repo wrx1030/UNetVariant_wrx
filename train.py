@@ -23,9 +23,9 @@ from torch.utils.data import DataLoader, random_split
 # dir_img = 'D:/DataSet/LiTs/2.0_ctpng/'
 # dir_mask = 'D:/DataSet/LiTs/2.0_labelpng/'
 # dir_previous = 'D:/DataSet/LiTs/2.0_prect/'
-dir_img = 'D:/DataSet/3Dircadb/next_ct/trainct/'
-dir_mask = 'D:/DataSet/3Dircadb/next_ct/traingt/'
-dir_previous = 'D:/DataSet/3Dircadb/next_ct/trainnextct/'
+dir_img = 'D:/DataSet/3Dircadb/train/CT/'
+dir_mask = 'D:/DataSet/3Dircadb/train/GT/'
+dir_previous = 'D:/DataSet/3Dircadb/train/GT_dilation/'
 dir_checkpoint = 'checkpoints/'
 
 def train_net(net,
@@ -63,10 +63,10 @@ def train_net(net,
     optimizer = optim.Adam(net.parameters(), lr=lr, weight_decay=1e-8)  # 优化器 Adam算法
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', factor=0.1, patience=3) #调整学习率
     seg_criterion = nn.BCEWithLogitsLoss() #loss
-    previous_criterion = nn.MSELoss()
+    previous_criterion = nn.BCEWithLogitsLoss()
     step_num = n_train//batch_size
 
-    Resume_train = True  # 是否继续训练 True False
+    Resume_train = False # 是否继续训练 True False
     if Resume_train:
         path_checkpoint = "./checkpoints/3Dircadb_groupnorm_epoch10.pth"  # 断点路径
         checkpoint = torch.load(path_checkpoint)  # 加载断点
@@ -74,14 +74,14 @@ def train_net(net,
         optimizer.load_state_dict(checkpoint['optimizer'])  # 加载优化器参数
         start_epoch = checkpoint['epoch']  # 设置开始的epoch
 
-    # for epoch in range(epochs):  # 初次训练
-    for epoch in range(start_epoch + 1, start_epoch + epochs + 1):  # 继续训练
+    for epoch in range(epochs):  # 初次训练
+    # for epoch in range(start_epoch + 1, start_epoch + epochs + 1):  # 继续训练
         net.train()
         epoch_loss = 0
         # 初次训练进度条
-        # with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
+        with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{epochs}', unit='img') as pbar:
         # 续训练进度条
-        with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{start_epoch + epochs + 1}', unit='img') as pbar:
+        # with tqdm(total=n_train, desc=f'Epoch {epoch + 1}/{start_epoch + epochs + 1}', unit='img') as pbar:
             for batch in train_loader:
                 imgs = batch['image']
                 true_masks = batch['mask']
@@ -99,14 +99,13 @@ def train_net(net,
                 masks_pred, previous_pred = net(imgs)
                 loss1 = seg_criterion(masks_pred, true_masks)
                 loss2 = previous_criterion(previous_pred, previous)
-                epoch_loss += loss1.item()
-                writer.add_scalar('Loss/train', loss1.item(), global_step)
+                epoch_loss = (loss1 + loss2) / 2
+                writer.add_scalar('Loss/train', epoch_loss.item(), global_step)
 
-                pbar.set_postfix(**{'loss (batch)': loss1.item()})
+                pbar.set_postfix(**{'loss (batch)': epoch_loss.item()})
 
                 optimizer.zero_grad()
-                loss2.backward(retain_graph=True)
-                loss1.backward()
+                epoch_loss.backward()
                 nn.utils.clip_grad_value_(net.parameters(), 0.1) #梯度裁剪
                 optimizer.step()
 
@@ -131,7 +130,7 @@ def train_net(net,
                 "epoch": epoch
             }
             torch.save(checkpoint,
-                       dir_checkpoint + f'3Dircadb_groupnorm_epoch{epoch + 1}.pth')  # 记得改名
+                       dir_checkpoint + f'3Dircadb_stage1dilation_epoch{epoch + 1}.pth')  # 记得改名
             logging.info(f'Checkpoint {epoch + 1} saved !')
 
     writer.close()
@@ -152,7 +151,7 @@ if __name__ == '__main__':
     cudnn.benchmark = True
 
     try:
-        train_net(net=net, device=device, epochs=90, batch_size=3, lr=1e-4, val_percent=0, img_scale=1)
+        train_net(net=net, device=device, epochs=100, batch_size=3, lr=1e-4, val_percent=0, img_scale=1)
     except KeyboardInterrupt:
         torch.save(net.state_dict(), 'INTERRUPTED.pth')
         logging.info('Saved interrupt')

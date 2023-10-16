@@ -9,7 +9,7 @@ from PIL import Image
 from utils import one_hot
 
 class BasicDataset(Dataset):
-    def __init__(self, imgs_dir, masks_dir, previous_dir, scale=1, mask_suffix=' 7, '):
+    def __init__(self, imgs_dir, masks_dir, previous_dir, scale=1, mask_suffix=''):
         self.imgs_dir = imgs_dir
         self.masks_dir = masks_dir
         self.previous_dir = previous_dir
@@ -105,4 +105,4 @@ class BasicDataset(Dataset):
 
 class CarvanaDataset(BasicDataset):
     def __init__(self, imgs_dir, masks_dir, scale=1):
-        super().__init__(imgs_dir, masks_dir, scale, mask_suffix='_mask')
+        super().__init__(imgs_dir, masks_dir, scale, mask_suffix='')
