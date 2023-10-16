@@ -14,7 +14,7 @@ def process_images(source_dir, target_dir):
             cv2.imwrite(os.path.join(target_dir, filename), dilate)
 
 # 指定源文件夹和目标文件夹的路径
-source_directory = 'D:\\DataSet\\3Dircadb\\train\\GT'
-target_directory = 'D:\\DataSet\\3Dircadb\\train\\GT_dilation'
+source_directory = 'D:\\DataSet\\3Dircadb\\train\\testGT\\2.2'
+target_directory = 'D:\\DataSet\\3Dircadb\\train\\testGtDilation\\2.2'
 
 process_images(source_directory, target_directory)
