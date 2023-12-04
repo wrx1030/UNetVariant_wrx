@@ -225,7 +225,25 @@ class Up_Conv(nn.Module):
         x = self.conv(x)
         return x
 
+class Transpose_Conv(nn.Module):
 
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.trans_conv = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        if in_channels == out_channels:
+            self.doubleconv = DoubleConv(in_channels*2, out_channels)
+        else:
+            self.doubleconv = DoubleConv(in_channels, out_channels)
+
+    def forward(self, x1, x2):
+        x1 = self.trans_conv(x1)
+        # diffY = x2.size()[2] - x1.size()[2]
+        # diffX = x2.size()[3] - x1.size()[3]
+        # x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
+        #                 diffY // 2, diffY - diffY // 2])
+        x = torch.cat([x2, x1], dim=1)
+        x = self.doubleconv(x)
+        return x
 
 class ECABlock(nn.Module):
     def __init__(self, channels, gamma=2, b=1):
