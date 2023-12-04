@@ -67,7 +67,7 @@ def predict_img(net,
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', '-m', default='.\\checkpoints\\3Dircadb_stage1dilation_epoch100.pth',
+    parser.add_argument('--model', '-m', default='./checkpoints/3Dircadb_s1+s2_epoch100.pth',
                         metavar='FILE',
                         help="Specify the file in which the model is stored")
     parser.add_argument('--viz', '-v', action='store_true',
@@ -145,10 +145,10 @@ def predict_function(inpath, outpath):
         plot_img_and_mask(img, mask)
 
 if __name__ == "__main__":
-    testpath = 'D:/DataSet/3Dircadb/train/testCT/1.1'
+    testpath = 'D:/DataSet/3Dircadb/next_ct/testct/1.4/'
     # testpath = 'D:/DataSet/LiTs/test/11,12CT/'
     for root, dirs, files in os.walk(testpath):
         for f in files:
             path1 = os.path.join(root, f)
-            outpath = os.path.join('D:/DataSet/3Dircadb/stageOneResult/1.1/', f)
+            outpath = os.path.join('D:\\DataSet\\3Dircadb\\s1+s2Result\\1.4\\', f)
             predict_function(path1, outpath)

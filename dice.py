@@ -80,6 +80,6 @@ def dice(path, GTpath):
 # GTpath = "D:/DataSet/Company/test/liverlabel/"
 # resultpath = "D:/DataSet/Company/company_sj/result_traUnet/result2/"
 # GTpath = "D:/DataSet/Company/company_sj/Liver_testing_images/mask3/"
-resultpath = "D:/DataSet/3Dircadb/data/output/1.1/"
-GTpath = "D:/DataSet/3Dircadb/data/gt/1.1/"
+resultpath = "D:\\DataSet\\3Dircadb\\s1+s2Result\\1.4\\"
+GTpath = "D:\DataSet\\3Dircadb\\next_ct\\testgt\\1.4\\"
 dice(resultpath, GTpath)
